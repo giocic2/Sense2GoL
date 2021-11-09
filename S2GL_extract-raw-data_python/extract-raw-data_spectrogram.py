@@ -10,11 +10,11 @@ from scipy.fft import fftshift
 
 SAMPLING_FREQUENCY = 3e3 #Hz
 time_resolution = 1/SAMPLING_FREQUENCY # s
-ACQUISITION_TIME = 10 # s
+ACQUISITION_TIME = int(input("Acquisition time [s]: "))
 SAMPLES_PER_FRAME = 128
-frames = ACQUISITION_TIME * SAMPLING_FREQUENCY / SAMPLES_PER_FRAME
-overhead =1000
-lines_read = frames * 8 + 1 + 1 + overhead
+frames = round(ACQUISITION_TIME * SAMPLING_FREQUENCY / SAMPLES_PER_FRAME)
+overhead = 100
+lines_read = (frames * 8 + 1 + 1) * 2 + overhead
 
 # Boolean variable that will represent 
 # whether or not the Sense2GoL is connected
@@ -45,7 +45,8 @@ completeFileName = os.path.join('S2GL_raw-data',samplesFileName)
 text_file = open(completeFileName, 'wb')
 # read serial data and write it to the text file
 index = 0
-while index <= 2_000:
+print("Acquisition started...")
+while index <= lines_read:
     if S2GL.inWaiting():
         x=S2GL.readline()
         text_file.write(x)
@@ -53,13 +54,11 @@ while index <= 2_000:
              text_file.seek(0)
              text_file.truncate()
         text_file.flush()
-        print(index)
     index += 1
-
+print("Raw data acquisition completed.")
 # close the serial connection and text file
 text_file.close()
 S2GL.close()
-print("Raw data acquisition completed.")
 
 # Extract raw samples from txt file
 text_file = open(completeFileName, 'rb')
@@ -104,35 +103,34 @@ print("Number of IFQ samples: ", len(Q_samples))
 array_length = min(len(I_samples), len(Q_samples))
 print("Processed signals length: ", array_length)
 
+# Seems that Q and I needs to be inverted
 Q_array = np.array(I_samples[0:array_length])
 I_array = np.array(Q_samples[0:array_length])
 
 complexSignal_mV = np.array(array_length)
 complexSignal_mV = np.add(I_array, 1j*Q_array)
 
-timeAxis_s = np.linspace(start=0, num=array_length, stop=array_length, endpoint=False) * time_resolution
+timeAxis = np.linspace(start=0, num=array_length, stop=array_length, endpoint=False)
 
-plt.plot(timeAxis_s, I_array)
-plt.ylabel('Voltage (mV)')
-plt.xlabel('Time (s)')
+plt.plot(timeAxis, I_array)
+plt.ylabel('Voltage (ADC level)')
+plt.xlabel('Time [sample number]')
 plt.grid(True)
 plt.title("IFI")
 plt.show()
 
-plt.plot(timeAxis_s, Q_array)
-plt.ylabel('Voltage (mV)')
-plt.xlabel('Time (s)')
+plt.plot(timeAxis, Q_array)
+plt.ylabel('Voltage (ADC level)')
+plt.xlabel('Time [sample number]')
 plt.grid(True)
 plt.title("IFQ")
 plt.show()
-
-SAMPLING_FREQUENCY = 3e3 # Hz
 
 # Spectrogram computation
 # f, t, Sxx = signal.spectrogram(complexSignal_mV, fs = SAMPLING_FREQUENCY, nperseg = 256, nfft = 256, scaling = 'spectrum', mode='complex')
 f, t, Sxx = signal.spectrogram(complexSignal_mV, fs=SAMPLING_FREQUENCY, nfft=2048, nperseg=64, noverlap=16, return_onesided=False)
 plt.pcolormesh(t, fftshift(f), fftshift(Sxx, axes=0), shading='gouraud')
-plt.ylabel('Frequency')
-plt.xlabel('Time')
+plt.ylabel('Frequency [Hz]')
+plt.xlabel('Time index')
 ##plt.axis([0, 2, 0, 1000])
 plt.show()
