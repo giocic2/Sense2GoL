@@ -127,10 +127,8 @@ plt.title("IFQ")
 plt.show()
 
 # Spectrogram computation
-# f, t, Sxx = signal.spectrogram(complexSignal_mV, fs = SAMPLING_FREQUENCY, nperseg = 256, nfft = 256, scaling = 'spectrum', mode='complex')
 f, t, Sxx = signal.spectrogram(complexSignal_mV, fs=SAMPLING_FREQUENCY, nfft=2048, nperseg=64, noverlap=16, return_onesided=False)
 plt.pcolormesh(t, fftshift(f), fftshift(Sxx, axes=0), shading='gouraud')
 plt.ylabel('Frequency [Hz]')
 plt.xlabel('Time index')
-##plt.axis([0, 2, 0, 1000])
 plt.show()
