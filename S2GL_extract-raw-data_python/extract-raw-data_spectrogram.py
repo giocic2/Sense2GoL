@@ -40,6 +40,27 @@ frames = round(ACQUISITION_TIME * SAMPLING_FREQUENCY / SAMPLES_PER_FRAME)
 overhead = 100
 lines_read = (frames * 8 + 1 + 1) * 2 + overhead
 
+# ANALYSIS SETTINGS
+FFT_RESOL = 1 # Hz
+SMOOTHING_WINDOW = 10 # Hz
+BANDWIDTH_THRESHOLD = 6 # dB
+ZERO_FORCING = True # Enable forcing FFT to zero, everywhere except between FREQUENCY_MIN and FREQUENCY_MAX
+FREQUENCY_MIN = -1_000 # Hz
+FREQUENCY_MAX = 1_000 # Hz
+
+# FFT bins and resolution
+freqBins_FFT = int(2**np.ceil(np.log2(abs(SAMPLING_FREQUENCY/2/FFT_RESOL))))
+print('FFT resolution: ' + str(SAMPLING_FREQUENCY / freqBins_FFT) + ' Hz')
+print('FFT bins: ' + str(freqBins_FFT))
+smoothingBins = int(round(SMOOTHING_WINDOW / (SAMPLING_FREQUENCY / freqBins_FFT)))
+print('Size of smoothing window (moving average): ' + str(smoothingBins) + ' bins')
+minBin = int(freqBins_FFT/2 + np.round(FREQUENCY_MIN / (SAMPLING_FREQUENCY/freqBins_FFT)))
+FREQUENCY_MIN = -SAMPLING_FREQUENCY/2 + minBin * SAMPLING_FREQUENCY/freqBins_FFT
+print("Minimum frequency of interest: {:.1f} Hz".format(FREQUENCY_MIN))
+maxBin = int(freqBins_FFT/2 + np.round(FREQUENCY_MAX / (SAMPLING_FREQUENCY/freqBins_FFT)))
+FREQUENCY_MAX = -SAMPLING_FREQUENCY/2 + maxBin * SAMPLING_FREQUENCY/freqBins_FFT
+print("Maximum frequency of interest: {:.1f} Hz".format(FREQUENCY_MAX))
+
 # Boolean variable that will represent 
 # whether or not the Sense2GoL is connected
 connected = False
