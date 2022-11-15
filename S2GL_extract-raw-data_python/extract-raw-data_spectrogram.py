@@ -34,7 +34,7 @@ from scipy.fft import fftshift
 
 SAMPLING_FREQUENCY = 3e3 #Hz
 time_resolution = 1/SAMPLING_FREQUENCY # s
-ACQUISITION_TIME = int(input("Acquisition time [s]: "))
+ACQUISITION_TIME = 6
 SAMPLES_PER_FRAME = 128
 frames = round(ACQUISITION_TIME * SAMPLING_FREQUENCY / SAMPLES_PER_FRAME)
 overhead = 100
@@ -157,23 +157,24 @@ complexSignal_mV = np.add(I_array, 1j*Q_array)
 
 timeAxis = np.linspace(start=0, num=array_length, stop=array_length, endpoint=False)
 
-plt.plot(timeAxis, I_array)
-plt.ylabel('Voltage (ADC level)')
-plt.xlabel('Time [sample number]')
-plt.grid(True)
-plt.title("IFI")
-plt.show()
+# plt.plot(timeAxis, I_array)
+# plt.ylabel('Voltage (ADC level)')
+# plt.xlabel('Time [sample number]')
+# plt.grid(True)
+# plt.title("IFI")
+# plt.show()
 
-plt.plot(timeAxis, Q_array)
-plt.ylabel('Voltage (ADC level)')
-plt.xlabel('Time [sample number]')
-plt.grid(True)
-plt.title("IFQ")
-plt.show()
+# plt.plot(timeAxis, Q_array)
+# plt.ylabel('Voltage (ADC level)')
+# plt.xlabel('Time [sample number]')
+# plt.grid(True)
+# plt.title("IFQ")
+# plt.show()
 
 # Spectrogram computation
-f, t, Sxx = signal.spectrogram(complexSignal_mV, fs=SAMPLING_FREQUENCY, nfft=2048, nperseg=64, noverlap=16, return_onesided=False)
-plt.pcolormesh(t, fftshift(f), fftshift(Sxx, axes=0), shading='gouraud')
+f, t, Sxx = signal.spectrogram(complexSignal_mV, fs=SAMPLING_FREQUENCY, nfft=512, nperseg=128, noverlap=16, return_onesided=False, detrend='constant', scaling='spectrum')
+plt.pcolormesh(t, fftshift(f), fftshift(Sxx, axes=0), shading='flat')
 plt.ylabel('Frequency [Hz]')
 plt.xlabel('Time index')
+plt.ylim([-400, 400])
 plt.show()
